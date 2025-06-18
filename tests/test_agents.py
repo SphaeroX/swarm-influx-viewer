@@ -81,3 +81,19 @@ def test_influx_list_fields_uses_predicate():
 
         called_query = mock_query_api.query.call_args.kwargs['query']
         assert 'predicate: (r) => r._measurement == "my_measure"' in called_query
+
+
+def test_ask_user_reads_input():
+    with patch('builtins.input', return_value='42'):
+        import agents
+        importlib.reload(agents)
+
+        result = agents.ask_user('How many?')
+        assert result == '42'
+
+
+def test_clarifying_agent_has_function():
+    import agents
+    importlib.reload(agents)
+
+    assert agents.ask_user in agents.clarifying_agent.functions
