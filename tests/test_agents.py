@@ -67,6 +67,46 @@ def test_influx_query_replaces_placeholder_bucket():
         assert 'from(bucket: "test_bucket")' in called_query
 
 
+def test_influx_query_inserts_measurement_when_missing():
+    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+        mock_client = MagicMock()
+        mock_query_api = MagicMock()
+        mock_query_api.query.return_value = []
+        mock_client.query_api.return_value = mock_query_api
+        mock_client_cls.return_value = mock_client
+
+        import agents
+        importlib.reload(agents)
+
+        query = '|> range(start: -1h)'
+        agents.influx_query(query)
+
+        called_query = mock_query_api.query.call_args.kwargs['query']
+        assert 'r._measurement == "default_measure"' in called_query
+
+
+def test_influx_query_replaces_placeholder_measurement():
+    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+        mock_client = MagicMock()
+        mock_query_api = MagicMock()
+        mock_query_api.query.return_value = []
+        mock_client.query_api.return_value = mock_query_api
+        mock_client_cls.return_value = mock_client
+
+        import agents
+        importlib.reload(agents)
+
+        query = (
+            'from(bucket: "test_bucket")\n'
+            '  |> filter(fn: (r) => r._measurement == "MEASUREMENT")\n'
+            '  |> range(start: -1h)'
+        )
+        agents.influx_query(query)
+
+        called_query = mock_query_api.query.call_args.kwargs['query']
+        assert 'r._measurement == "default_measure"' in called_query
+
+
 def test_influx_list_fields_uses_predicate():
     with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
