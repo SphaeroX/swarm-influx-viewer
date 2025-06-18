@@ -1,6 +1,6 @@
 import os
 import re
-import influxdb_client
+from influxdb_client import InfluxDBClient
 from swarm import Agent
 from .common import MODEL_NAME
 
@@ -13,16 +13,16 @@ try:
         MEASUREMENT,
     )
 except ImportError:  # pragma: no cover - fallback for runtime usage
-    INFLUX_URL = os.getenv("INFLUX_URL")
-    INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
-    INFLUX_ORG = os.getenv("INFLUX_ORG")
-    INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
-    MEASUREMENT = os.getenv("MEASUREMENT")
+    INFLUX_URL = os.getenv("INFLUX_URL", "")
+    INFLUX_TOKEN = os.getenv("INFLUX_TOKEN", "")
+    INFLUX_ORG = os.getenv("INFLUX_ORG", "")
+    INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "")
+    MEASUREMENT = os.getenv("MEASUREMENT", "")
 
 
 def influx_list_buckets():
     """List all buckets in the InfluxDB instance."""
-    client = influxdb_client.InfluxDBClient(
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     buckets = client.buckets_api().find_buckets().buckets
@@ -35,7 +35,7 @@ def influx_list_measurements():
 import \"influxdata/influxdb/schema\"
 schema.measurements(bucket: \"{INFLUX_BUCKET}\")
 """
-    client = influxdb_client.InfluxDBClient(
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     query_api = client.query_api()
@@ -53,7 +53,7 @@ schema.fieldKeys(
   predicate: (r) => r._measurement == \"{measurement}\"
 )
 """
-    client = influxdb_client.InfluxDBClient(
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     query_api = client.query_api()
@@ -69,7 +69,7 @@ from(bucket: \"{INFLUX_BUCKET}\")
   |> range(start: -1h)
   |> filter(fn: (r) => r._measurement == \"{measurement}\" and r._field == \"{field}\")
 """
-    client = influxdb_client.InfluxDBClient(
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     query_api = client.query_api()
@@ -80,19 +80,40 @@ from(bucket: \"{INFLUX_BUCKET}\")
     ]
 
 
-def influx_query(flux_query: str):
-    """Execute an arbitrary Flux query against the bucket."""
+
+def influx_query(flux_query: str, measurement: str | None = None):
+    """Execute an arbitrary Flux query against the bucket and measurement."""
+    measurement = measurement or MEASUREMENT
     if "from(bucket:" not in flux_query:
-        flux_query = f'from(bucket: \"{INFLUX_BUCKET}\")\n  |> ' + flux_query.lstrip()
+        cleaned = flux_query.lstrip()
+        if cleaned.startswith("|>"):
+            cleaned = cleaned[len("|>"):].lstrip()
+        flux_query = f'from(bucket: "{INFLUX_BUCKET}")\n  |> ' + cleaned
     else:
         flux_query = re.sub(
             r'from\(bucket:\s*(""|None|"?INFLUX_BUCKET"?)\)',
-            f'from(bucket: \"{INFLUX_BUCKET}\")',
+            f'from(bucket: "{INFLUX_BUCKET}")',
             flux_query,
             count=1,
         )
 
-    client = influxdb_client.InfluxDBClient(
+    measurement_placeholder = r'r\._measurement\s*==\s*(""|None|"?MEASUREMENT"?)'
+    if re.search(measurement_placeholder, flux_query):
+        flux_query = re.sub(
+            measurement_placeholder,
+            f'r._measurement == "{measurement}"',
+            flux_query,
+            count=1,
+        )
+    elif "_measurement" not in flux_query:
+        flux_query = re.sub(
+            r'(from\(bucket:[^\n]+\))',
+            r'\1\n  |> filter(fn: (r) => r._measurement == "%s")' % measurement,
+            flux_query,
+            count=1,
+        )
+
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     query_api = client.query_api()
@@ -102,11 +123,10 @@ def influx_query(flux_query: str):
         for table in result for record in table.records
     ]
 
-
 def influx_write_point(fields: dict, measurement: str | None = None, tags: dict | None = None, time=None):
     """Write a single point to the bucket."""
     measurement = measurement or MEASUREMENT
-    client = influxdb_client.InfluxDBClient(
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     write_api = client.write_api()
@@ -122,7 +142,7 @@ def influx_write_point(fields: dict, measurement: str | None = None, tags: dict 
 
 def influx_delete_data(start: str, stop: str, predicate: str = ""):
     """Delete data in a time range with optional predicate."""
-    client = influxdb_client.InfluxDBClient(
+    client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     delete_api = client.delete_api()
