@@ -1,4 +1,5 @@
 import os
+import re
 
 try:
     from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
@@ -48,7 +49,10 @@ def influx_list_fields(measurement: str):
     """List all field keys for a given measurement in the bucket."""
     query = f'''
 import "influxdata/influxdb/schema"
-schema.fieldKeys(bucket: "{INFLUX_BUCKET}", measurement: "{measurement}")
+schema.fieldKeys(
+  bucket: "{INFLUX_BUCKET}",
+  predicate: (r) => r._measurement == "{measurement}"
+)
 '''
     client = influxdb_client.InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
@@ -75,7 +79,22 @@ from(bucket: "{INFLUX_BUCKET}")
 
 
 def influx_query(flux_query: str):
-    """Execute an arbitrary Flux query against the bucket."""
+    """Execute an arbitrary Flux query against the bucket.
+
+    If no bucket is specified in the given query, or an empty bucket is provided,
+    the configured ``INFLUX_BUCKET`` will be inserted automatically. This helps
+    avoid ``ApiException`` errors caused by missing bucket information.
+    """
+    if "from(bucket:" not in flux_query:
+        flux_query = f'from(bucket: "{INFLUX_BUCKET}")\n  |> ' + flux_query.lstrip()
+    else:
+        flux_query = re.sub(
+            r'from\(bucket:\s*(""|None|"?INFLUX_BUCKET"?)\)',
+            f'from(bucket: "{INFLUX_BUCKET}")',
+            flux_query,
+            count=1,
+        )
+
     client = influxdb_client.InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     query_api = client.query_api()

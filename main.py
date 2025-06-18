@@ -7,7 +7,7 @@ if __name__ == "__main__":
         messages=[
             {
                 "role": "user",
-                "content": "Zeige mir die letzten 1 stunde co2 und scd41_sensoren werte von der luftqualitaet",
+                "content": "Zeige mir die letzten 1 stunde scd41_co2 und scd41_temperature aus der Measurement 'full'",
             }
         ],
         debug=True,
