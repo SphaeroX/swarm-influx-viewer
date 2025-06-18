@@ -8,3 +8,4 @@
 Copy `config.example.py` to `config.py` and fill in your InfluxDB details. If no
 `config.py` is present, the application falls back to the environment variables
 `INFLUX_URL`, `INFLUX_TOKEN`, `INFLUX_ORG` and `INFLUX_BUCKET`.
+\n### Notes\nThe `influx_query` function now automatically injects the configured bucket if the Flux query does not specify one.
