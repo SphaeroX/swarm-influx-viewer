@@ -11,6 +11,11 @@ Copy `config.example.py` to `config.py` and fill in your InfluxDB details. If no
 The `MEASUREMENT` setting controls which measurement is used when none is
 explicitly provided in a query.
 
+When `OPENAI_API_KEY` is set in `config.py` or the environment, the agents use
+the OpenAI API with the model specified by `OPENAI_MODEL_NAME`. Without this
+key, a local Ollama server defined via `OLLAMA_BASE_URL` is used together with
+`OLLAMA_MODEL_NAME`.
+
 ### Notes
 The `influx_query` function now automatically injects the configured bucket if the Flux query does not specify one or if the placeholder `INFLUX_BUCKET` is used. It also applies the configured measurement when no `_measurement` filter is present or when `MEASUREMENT` is used as a placeholder.
 
