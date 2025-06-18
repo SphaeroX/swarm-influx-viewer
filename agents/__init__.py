@@ -1,4 +1,10 @@
-from .common import client, MODEL_NAME, ollama_client
+from .common import (
+    client,
+    MODEL_NAME_1,
+    MODEL_NAME_2,
+    MODEL_NAME_3,
+    ollama_client,
+)
 from .database_manager import (
     influx_list_buckets,
     influx_list_measurements,
@@ -26,7 +32,9 @@ from .triage_agent import (
 
 __all__ = [
     "client",
-    "MODEL_NAME",
+    "MODEL_NAME_1",
+    "MODEL_NAME_2",
+    "MODEL_NAME_3",
     "ollama_client",
     "influx_list_buckets",
     "influx_list_measurements",

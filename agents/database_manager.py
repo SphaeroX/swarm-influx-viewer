@@ -2,7 +2,7 @@ import os
 import re
 from influxdb_client import InfluxDBClient
 from swarm import Agent
-from .common import MODEL_NAME
+from .common import MODEL_NAME_1
 
 try:
     from config import (
@@ -166,5 +166,5 @@ influxDB_agent = Agent(
         influx_write_point,
         influx_delete_data,
     ],
-    model=MODEL_NAME,
+    model=MODEL_NAME_1,
 )
