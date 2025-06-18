@@ -1,8 +1,16 @@
-from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
+import os
+
+try:
+    from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
+except ImportError:
+    INFLUX_URL = os.getenv("INFLUX_URL")
+    INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
+    INFLUX_ORG = os.getenv("INFLUX_ORG")
+    INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
+
 from swarm import Swarm, Agent
 from openai import OpenAI
 import influxdb_client
-import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
