@@ -15,7 +15,7 @@ def setup_module(module):
 
 
 def test_influx_query_inserts_bucket_when_missing():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
@@ -33,7 +33,7 @@ def test_influx_query_inserts_bucket_when_missing():
 
 
 def test_influx_query_replaces_empty_bucket():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
@@ -50,7 +50,7 @@ def test_influx_query_replaces_empty_bucket():
         assert 'from(bucket: "test_bucket")' in called_query
 
 def test_influx_query_replaces_placeholder_bucket():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
@@ -68,7 +68,7 @@ def test_influx_query_replaces_placeholder_bucket():
 
 
 def test_influx_query_inserts_measurement_when_missing():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
@@ -86,7 +86,7 @@ def test_influx_query_inserts_measurement_when_missing():
 
 
 def test_influx_query_replaces_placeholder_measurement():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
@@ -108,7 +108,7 @@ def test_influx_query_replaces_placeholder_measurement():
 
 
 def test_influx_list_fields_uses_predicate():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
@@ -141,7 +141,7 @@ def test_clarifying_agent_has_function():
 
     
 def test_influx_query_last_hour_defaults_measurement():
-    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_query_api.query.return_value = []
