@@ -13,3 +13,10 @@ explicitly provided in a query.
 
 ### Notes
 The `influx_query` function now automatically injects the configured bucket if the Flux query does not specify one or if the placeholder `INFLUX_BUCKET` is used.
+
+### Agents
+Each agent now resides in its own module under the `agents` package:
+- `database_manager.py` for database management
+- `data_specialist_agent.py` for data analysis and plotting
+- `clarifying_agent.py` for gathering missing user details
+- `triage_agent.py` that routes requests to the appropriate agent
