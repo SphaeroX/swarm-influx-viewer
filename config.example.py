@@ -17,6 +17,7 @@ DEFAULT_MEASUREMENT = "full"
 MEASUREMENT = os.getenv("MEASUREMENT", DEFAULT_MEASUREMENT)
 
 # Model configuration
+MODEL_PROVIDER = os.getenv("MODEL_PROVIDER", "")  # 'openai' or 'ollama'
 DEFAULT_OPENAI_MODEL_NAME = "gpt-4o"
 DEFAULT_OLLAMA_MODEL_NAME = "qwen3:8b"
 
