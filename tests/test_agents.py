@@ -64,3 +64,20 @@ def test_influx_query_replaces_placeholder_bucket():
 
         called_query = mock_query_api.query.call_args.kwargs['query']
         assert 'from(bucket: "test_bucket")' in called_query
+
+
+def test_influx_list_fields_uses_predicate():
+    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+        mock_client = MagicMock()
+        mock_query_api = MagicMock()
+        mock_query_api.query.return_value = []
+        mock_client.query_api.return_value = mock_query_api
+        mock_client_cls.return_value = mock_client
+
+        import agents
+        importlib.reload(agents)
+
+        agents.influx_list_fields('my_measure')
+
+        called_query = mock_query_api.query.call_args.kwargs['query']
+        assert 'predicate: (r) => r._measurement == "my_measure"' in called_query

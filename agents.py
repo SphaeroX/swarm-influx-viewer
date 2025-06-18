@@ -49,7 +49,10 @@ def influx_list_fields(measurement: str):
     """List all field keys for a given measurement in the bucket."""
     query = f'''
 import "influxdata/influxdb/schema"
-schema.fieldKeys(bucket: "{INFLUX_BUCKET}", measurement: "{measurement}")
+schema.fieldKeys(
+  bucket: "{INFLUX_BUCKET}",
+  predicate: (r) => r._measurement == "{measurement}"
+)
 '''
     client = influxdb_client.InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
