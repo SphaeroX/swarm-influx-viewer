@@ -47,3 +47,20 @@ def test_influx_query_replaces_empty_bucket():
 
         called_query = mock_query_api.query.call_args.kwargs['query']
         assert 'from(bucket: "test_bucket")' in called_query
+
+def test_influx_query_replaces_placeholder_bucket():
+    with patch('influxdb_client.InfluxDBClient') as mock_client_cls:
+        mock_client = MagicMock()
+        mock_query_api = MagicMock()
+        mock_query_api.query.return_value = []
+        mock_client.query_api.return_value = mock_query_api
+        mock_client_cls.return_value = mock_client
+
+        import agents
+        importlib.reload(agents)
+
+        query = 'from(bucket: "INFLUX_BUCKET")\n  |> range(start: -1h)'
+        agents.influx_query(query)
+
+        called_query = mock_query_api.query.call_args.kwargs['query']
+        assert 'from(bucket: "test_bucket")' in called_query

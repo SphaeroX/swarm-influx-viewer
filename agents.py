@@ -86,7 +86,7 @@ def influx_query(flux_query: str):
         flux_query = f'from(bucket: "{INFLUX_BUCKET}")\n  |> ' + flux_query.lstrip()
     else:
         flux_query = re.sub(
-            r'from\(bucket:\s*(""|None)\)',
+            r'from\(bucket:\s*(""|None|"?INFLUX_BUCKET"?)\)',
             f'from(bucket: "{INFLUX_BUCKET}")',
             flux_query,
             count=1,
