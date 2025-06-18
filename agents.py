@@ -2,12 +2,19 @@ import os
 import re
 
 try:
-    from config import INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET
+    from config import (
+        INFLUX_URL,
+        INFLUX_TOKEN,
+        INFLUX_ORG,
+        INFLUX_BUCKET,
+        MEASUREMENT,
+    )
 except ImportError:
     INFLUX_URL = os.getenv("INFLUX_URL")
     INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
     INFLUX_ORG = os.getenv("INFLUX_ORG")
     INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
+    MEASUREMENT = os.getenv("MEASUREMENT")
 
 from swarm import Swarm, Agent
 from openai import OpenAI
@@ -45,8 +52,9 @@ schema.measurements(bucket: "{INFLUX_BUCKET}")
     return [record.get_value() for table in result for record in table.records]
 
 
-def influx_list_fields(measurement: str):
+def influx_list_fields(measurement: str = None):
     """List all field keys for a given measurement in the bucket."""
+    measurement = measurement or MEASUREMENT
     query = f'''
 import "influxdata/influxdb/schema"
 schema.fieldKeys(
@@ -61,8 +69,9 @@ schema.fieldKeys(
     return [record.get_value() for table in result for record in table.records]
 
 
-def influx_query_last_hour(measurement: str, field: str):
+def influx_query_last_hour(field: str, measurement: str | None = None):
     """Query the specified field from the last hour."""
+    measurement = measurement or MEASUREMENT
     query = f'''
 from(bucket: "{INFLUX_BUCKET}")
   |> range(start: -1h)
@@ -105,8 +114,9 @@ def influx_query(flux_query: str):
     ]
 
 
-def influx_write_point(measurement: str, fields: dict, tags: dict = None, time=None):
+def influx_write_point(fields: dict, measurement: str | None = None, tags: dict = None, time=None):
     """Write a single point to the bucket."""
+    measurement = measurement or MEASUREMENT
     client = influxdb_client.InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
     write_api = client.write_api()
