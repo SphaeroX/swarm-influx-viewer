@@ -4,6 +4,7 @@ from influxdb_client import InfluxDBClient
 from datetime import datetime, timezone
 from swarm import Agent
 from .common import MODEL_NAME_1
+from memory import remember_note
 
 try:
     from config import (
@@ -157,6 +158,7 @@ influxDB_agent = Agent(
         influx_write_point,
         influx_delete_data,
         get_current_time,
+        remember_note,
     ],
     model=MODEL_NAME_1,
 )

@@ -1,5 +1,6 @@
 from swarm import Agent
 from .common import MODEL_NAME_1
+from memory import remember_note
 from .database_manager import influxDB_agent
 from .data_specialist_agent import data_specialist_agent
 from .clarifying_agent import clarifying_agent
@@ -40,6 +41,7 @@ triage_agent.functions = [
     transfer_to_database_manager,
     transfer_to_data_specialist,
     transfer_to_clarifying_agent,
+    remember_note,
 ]
 
 # add transfer functions to other agents

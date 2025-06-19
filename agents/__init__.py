@@ -22,6 +22,7 @@ from .data_specialist_agent import (
     data_specialist_agent,
 )
 from .clarifying_agent import ask_user, clarifying_agent
+from memory import remember_note
 from .triage_agent import (
     triage_agent,
     transfer_back_to_triage,
@@ -46,6 +47,7 @@ __all__ = [
     "list_data_fields",
     "filter_data",
     "visualize_data",
+    "remember_note",
     "ask_user",
     "influxDB_agent",
     "data_specialist_agent",

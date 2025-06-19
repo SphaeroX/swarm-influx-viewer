@@ -23,6 +23,9 @@ provider.
 
 ### Notes
 The `influx_query` function now automatically injects the configured bucket if the Flux query does not specify one or if the placeholder `INFLUX_BUCKET` is used. It also applies the configured measurement when no `_measurement` filter is present or when `MEASUREMENT` is used as a placeholder.
+The main script persists a short conversation history in `memory.json` so recent
+context is reused across agent calls. Agents can also store additional notes
+using the new `remember_note` function which writes to this memory file.
 
 ### Agents
 Each agent now resides in its own module under the `agents` package:
@@ -31,3 +34,4 @@ Each agent now resides in its own module under the `agents` package:
 - `data_specialist_agent.py` for data analysis and plotting
 - `clarifying_agent.py` for gathering missing user details
 - `triage_agent.py` that routes requests to the appropriate agent
+- `remember_note` helper allows any agent to persist important notes
