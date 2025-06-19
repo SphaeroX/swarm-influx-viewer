@@ -4,6 +4,7 @@ from influxdb_client import InfluxDBClient
 from datetime import datetime, timezone
 from swarm import Agent
 from .common import MODEL_NAME_1
+from .data_store import store_cached_data
 
 try:
     from config import (
@@ -107,6 +108,12 @@ def influx_query(flux_query: str, measurement: str | None = None):
         for table in result for record in table.records
     ]
 
+
+def influx_query_store(flux_query: str, measurement: str | None = None):
+    """Run a query and store the result in the global cache."""
+    data = influx_query(flux_query, measurement)
+    return store_cached_data(data)
+
 def influx_write_point(fields: dict, measurement: str | None = None, tags: dict | None = None, time=None):
     """Write a single point to the bucket."""
     measurement = measurement or MEASUREMENT
@@ -147,13 +154,14 @@ influxDB_agent = Agent(
         f"and default measurement {MEASUREMENT}. "
         "Authenticate using the token stored in the INFLUX_TOKEN environment variable. "
         "You can list buckets, measurements, fields, execute arbitrary Flux queries, write points, delete data, "
-        "and provide the current UTC time."
+        "cache query results for other agents using influx_query_store, and provide the current UTC time."
     ),
     functions=[
         influx_list_buckets,
         influx_list_measurements,
         influx_list_fields,
         influx_query,
+        influx_query_store,
         influx_write_point,
         influx_delete_data,
         get_current_time,
