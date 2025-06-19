@@ -28,6 +28,10 @@ If the configured bucket does not exist on the server, the helper raises a
 clear `ValueError` pointing out the missing bucket. Check your `INFLUX_BUCKET`
 setting whenever you encounter a `404` error from the API.
 
+All database helpers load their connection details from the environment on each
+call. Ensure `INFLUX_URL`, `INFLUX_TOKEN`, `INFLUX_ORG` and `INFLUX_BUCKET` are
+defined before running the agents or the helpers will raise a `ValueError`.
+
 ### Agents
 Each agent now resides in its own module under the `agents` package:
 - `database_manager.py` for database management

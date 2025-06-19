@@ -21,8 +21,42 @@ except ImportError:  # pragma: no cover - fallback for runtime usage
     MEASUREMENT = os.getenv("MEASUREMENT", "")
 
 
+def _refresh_config() -> None:
+    """Reload InfluxDB settings from ``config.py`` or environment variables."""
+    try:  # reimport in case values changed
+        from importlib import reload
+        import config  # type: ignore
+
+        cfg = reload(config)
+        url = getattr(cfg, "INFLUX_URL", "")
+        token = getattr(cfg, "INFLUX_TOKEN", "")
+        org = getattr(cfg, "INFLUX_ORG", "")
+        bucket = getattr(cfg, "INFLUX_BUCKET", "")
+        measurement = getattr(cfg, "MEASUREMENT", "")
+    except Exception:  # pragma: no cover - runtime fallback
+        url = os.getenv("INFLUX_URL", "")
+        token = os.getenv("INFLUX_TOKEN", "")
+        org = os.getenv("INFLUX_ORG", "")
+        bucket = os.getenv("INFLUX_BUCKET", "")
+        measurement = os.getenv("MEASUREMENT", "")
+
+    global INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET, MEASUREMENT
+    INFLUX_URL = url
+    INFLUX_TOKEN = token
+    INFLUX_ORG = org
+    INFLUX_BUCKET = bucket
+    MEASUREMENT = measurement
+
+    if not all([INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET]):
+        raise ValueError(
+            "Missing InfluxDB configuration. Set INFLUX_URL, INFLUX_TOKEN, "
+            "INFLUX_ORG and INFLUX_BUCKET via environment variables or config.py."
+        )
+
+
 def influx_list_buckets():
     """List all buckets in the InfluxDB instance."""
+    _refresh_config()
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
@@ -32,6 +66,7 @@ def influx_list_buckets():
 
 def influx_list_measurements():
     """List all measurements in the predetermined bucket."""
+    _refresh_config()
     query = f"""
 import \"influxdata/influxdb/schema\"
 schema.measurements(bucket: \"{INFLUX_BUCKET}\")
@@ -46,6 +81,7 @@ schema.measurements(bucket: \"{INFLUX_BUCKET}\")
 
 def influx_list_fields(measurement: str | None = None):
     """List all field keys for a given measurement in the bucket."""
+    _refresh_config()
     measurement = measurement or MEASUREMENT
     query = f"""
 import \"influxdata/influxdb/schema\"
@@ -65,6 +101,7 @@ schema.fieldKeys(
 
 def influx_query(flux_query: str, measurement: str | None = None):
     """Execute an arbitrary Flux query against the bucket and measurement."""
+    _refresh_config()
     measurement = measurement or MEASUREMENT
     if "from(bucket:" not in flux_query:
         cleaned = flux_query.lstrip()
@@ -115,6 +152,7 @@ def influx_query(flux_query: str, measurement: str | None = None):
 
 def influx_write_point(fields: dict, measurement: str | None = None, tags: dict | None = None, time=None):
     """Write a single point to the bucket."""
+    _refresh_config()
     measurement = measurement or MEASUREMENT
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
@@ -132,6 +170,7 @@ def influx_write_point(fields: dict, measurement: str | None = None, tags: dict 
 
 def influx_delete_data(start: str, stop: str, predicate: str = ""):
     """Delete data in a time range with optional predicate."""
+    _refresh_config()
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )

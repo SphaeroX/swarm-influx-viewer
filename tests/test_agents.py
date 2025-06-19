@@ -2,6 +2,7 @@ import os
 import sys
 import importlib
 from unittest.mock import MagicMock, patch
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -138,5 +139,17 @@ def test_clarifying_agent_has_function():
     importlib.reload(agents)
 
     assert agents.ask_user in agents.clarifying_agent.functions
+
+
+def test_missing_config_raises_error():
+    env_backup = os.environ.copy()
+    for var in ["INFLUX_URL", "INFLUX_TOKEN", "INFLUX_ORG", "INFLUX_BUCKET"]:
+        os.environ.pop(var, None)
+    import agents
+    importlib.reload(agents)
+
+    with pytest.raises(ValueError):
+        agents.influx_query("|> range(start: -1h)")
+    os.environ.update(env_backup)
 
     
