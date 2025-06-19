@@ -19,8 +19,15 @@ def list_data_fields(data: dict | None = None) -> list:
     return list(df.columns)
 
 
-def filter_data(data: dict, filters: dict) -> dict:
-    """Filter the dataset based on provided criteria."""
+def filter_data(data: dict | None = None, filters: dict | None = None) -> dict:
+    """Return a subset of ``data`` that matches ``filters``.
+
+    When called without arguments, an empty dict is returned so the agent does
+    not raise a ``TypeError`` if no data is supplied.
+    """
+    if not data or not filters:
+        return {}
+
     df = pd.DataFrame(data)
     for field, condition in filters.items():
         df = df.query(condition)

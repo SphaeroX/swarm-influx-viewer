@@ -163,3 +163,10 @@ def test_list_data_fields_no_data():
 
     assert agents.list_data_fields() == []
 
+
+def test_filter_data_no_args():
+    import agents
+    importlib.reload(agents)
+
+    assert agents.filter_data() == {}
+
