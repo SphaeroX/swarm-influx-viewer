@@ -29,7 +29,7 @@ ollama_client = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 provider = (LLM_PROVIDER or "").lower()
-if provider == "openai" or (not provider and OPENAI_API_KEY):
+if provider == "openai":
     client = Swarm(openai_client)
     MODEL_NAME_1 = OPENAI_MODEL_NAME_1
     MODEL_NAME_2 = OPENAI_MODEL_NAME_2
