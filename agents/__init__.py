@@ -9,10 +9,10 @@ from .database_manager import (
     influx_list_buckets,
     influx_list_measurements,
     influx_list_fields,
-    influx_query_last_hour,
     influx_query,
     influx_write_point,
     influx_delete_data,
+    get_current_time,
     influxDB_agent,
 )
 from .data_specialist_agent import (
@@ -39,10 +39,10 @@ __all__ = [
     "influx_list_buckets",
     "influx_list_measurements",
     "influx_list_fields",
-    "influx_query_last_hour",
     "influx_query",
     "influx_write_point",
     "influx_delete_data",
+    "get_current_time",
     "list_data_fields",
     "filter_data",
     "visualize_data",
