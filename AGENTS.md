@@ -12,3 +12,11 @@ The entry point `main.py` shows how to run the triage agent with Swarm. Configur
 Tests live in the `tests` directory and focus on verifying the database helper functions. Dependencies are listed in `requirements.txt`.
 
 Use this file as a quick reference for the repository structure when extending or modifying the agents.
+
+# SWARM Framework Usage
+
+This project is built around the SWARM framework from OpenAI, which orchestrates multiple domain-specific agents to work together on a task. Each agent exposes a set of functions that can be chained by the framework to produce useful results.
+
+When designing instructions for the agents, provide detailed context whenever possible. Examples include the current timestamp, relevant database connection details or other metadata required for the task. The large language model uses these details to craft accurate function calls and return valid results.
+
+Supplying comprehensive instructions reduces ambiguity and improves the reliability of automated workflows driven by the SWARM framework.
