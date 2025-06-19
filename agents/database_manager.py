@@ -155,7 +155,7 @@ influxDB_agent = Agent(
     instructions=(
         "You are an IT specialist agent capable of managing and querying an InfluxDB database. "
         "You can list buckets, measurements, fields, query the last hour of data, execute arbitrary Flux queries, "
-        "write points, and delete data."
+        "write points, and delete data. After completing a task, ask the user if they need anything else or if the result is satisfactory."
     ),
     functions=[
         influx_list_buckets,

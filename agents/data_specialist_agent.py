@@ -102,7 +102,7 @@ data_specialist_agent = Agent(
     instructions=(
         "You are a data specialist agent. You can list data fields, filter datasets based on criteria, "
         "and autonomously decide which data to visualize. You generate plot files when requested, "
-        "supporting scatter, line, bar, histogram and pie charts."
+        "supporting scatter, line, bar, histogram and pie charts. After delivering your output, ask the user if they need anything else or if the results meet their needs."
     ),
     functions=[
         list_data_fields,
