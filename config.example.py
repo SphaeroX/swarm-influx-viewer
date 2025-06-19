@@ -1,32 +1,27 @@
-import os
+"""Example configuration for swarm-influx-viewer.
 
-# Default InfluxDB Configuration values
-DEFAULT_INFLUX_URL = "https://example.com"
-DEFAULT_INFLUX_TOKEN = "example-token"
-DEFAULT_INFLUX_ORG = "example-org"
-DEFAULT_INFLUX_BUCKET = "example-bucket"
+Copy this file to ``config.py`` and adjust the values. When ``config.py`` is not
+present, the application falls back to the corresponding environment variables.
+"""
 
-# InfluxDB Configuration with environment variables and fallback to default values
-INFLUX_URL = os.getenv("INFLUX_URL", DEFAULT_INFLUX_URL)
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN", DEFAULT_INFLUX_TOKEN)
-INFLUX_ORG = os.getenv("INFLUX_ORG", DEFAULT_INFLUX_ORG)
-INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", DEFAULT_INFLUX_BUCKET)
-
-# Measurement configuration
-DEFAULT_MEASUREMENT = "full"
-MEASUREMENT = os.getenv("MEASUREMENT", DEFAULT_MEASUREMENT)
+# InfluxDB configuration
+INFLUX_URL = "https://example.com"
+INFLUX_TOKEN = "example-token"
+INFLUX_ORG = "example-org"
+INFLUX_BUCKET = "example-bucket"
+MEASUREMENT = "full"
 
 # Model configuration
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "")  # 'openai' or 'ollama'
-DEFAULT_OPENAI_MODEL_NAME = "gpt-4o"
-DEFAULT_OLLAMA_MODEL_NAME = "qwen3:8b"
+LLM_PROVIDER = ""  # "openai" or "ollama"
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL_NAME_1 = os.getenv("OPENAI_MODEL_NAME_1", DEFAULT_OPENAI_MODEL_NAME)
-OPENAI_MODEL_NAME_2 = os.getenv("OPENAI_MODEL_NAME_2", OPENAI_MODEL_NAME_1)
-OPENAI_MODEL_NAME_3 = os.getenv("OPENAI_MODEL_NAME_3", OPENAI_MODEL_NAME_1)
+# OpenAI settings
+OPENAI_API_KEY = ""
+OPENAI_MODEL_NAME_1 = "gpt-4o"
+OPENAI_MODEL_NAME_2 = OPENAI_MODEL_NAME_1
+OPENAI_MODEL_NAME_3 = OPENAI_MODEL_NAME_1
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-OLLAMA_MODEL_NAME_1 = os.getenv("OLLAMA_MODEL_NAME_1", DEFAULT_OLLAMA_MODEL_NAME)
-OLLAMA_MODEL_NAME_2 = os.getenv("OLLAMA_MODEL_NAME_2", OLLAMA_MODEL_NAME_1)
-OLLAMA_MODEL_NAME_3 = os.getenv("OLLAMA_MODEL_NAME_3", OLLAMA_MODEL_NAME_1)
+# Ollama settings
+OLLAMA_BASE_URL = "http://localhost:11434/v1"
+OLLAMA_MODEL_NAME_1 = "qwen3:8b"
+OLLAMA_MODEL_NAME_2 = OLLAMA_MODEL_NAME_1
+OLLAMA_MODEL_NAME_3 = OLLAMA_MODEL_NAME_1
