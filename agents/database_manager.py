@@ -23,16 +23,20 @@ except ImportError:  # pragma: no cover - fallback for runtime usage
 
 
 def influx_list_buckets():
-    """List all buckets in the InfluxDB instance."""
+    """List all buckets in the InfluxDB instance with a short summary."""
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     buckets = client.buckets_api().find_buckets().buckets
-    return [b.name for b in buckets]
+    names = [b.name for b in buckets]
+    return {
+        "message": f"Found {len(names)} buckets.",
+        "buckets": names,
+    }
 
 
 def influx_list_measurements():
-    """List all measurements in the predetermined bucket."""
+    """List all measurements in the predetermined bucket with a description."""
     query = f"""
 import \"influxdata/influxdb/schema\"
 schema.measurements(bucket: \"{INFLUX_BUCKET}\")
@@ -42,11 +46,17 @@ schema.measurements(bucket: \"{INFLUX_BUCKET}\")
     )
     query_api = client.query_api()
     result = query_api.query(org=INFLUX_ORG, query=query)
-    return [record.get_value() for table in result for record in table.records]
+    measurements = [
+        record.get_value() for table in result for record in table.records
+    ]
+    return {
+        "message": f"Found {len(measurements)} measurements in {INFLUX_BUCKET}.",
+        "measurements": measurements,
+    }
 
 
 def influx_list_fields(measurement: str | None = None):
-    """List all field keys for a given measurement in the bucket."""
+    """List all field keys for a given measurement and provide a summary."""
     measurement = measurement or MEASUREMENT
     query = f"""
 import \"influxdata/influxdb/schema\"
@@ -60,14 +70,18 @@ schema.fieldKeys(
     )
     query_api = client.query_api()
     result = query_api.query(org=INFLUX_ORG, query=query)
-    return [record.get_value() for table in result for record in table.records]
+    fields = [record.get_value() for table in result for record in table.records]
+    return {
+        "message": f"Found {len(fields)} fields for measurement {measurement}.",
+        "fields": fields,
+    }
 
 
 
 
 
-def influx_query(flux_query: str, measurement: str | None = None):
-    """Execute an arbitrary Flux query against the bucket and measurement."""
+def influx_query(flux_query: str, measurement: str | None = None) -> str:
+    """Execute a Flux query, cache the result to ``CACHE_FILE`` and return a confirmation message."""
     measurement = measurement or MEASUREMENT
     if "from(bucket:" not in flux_query:
         cleaned = flux_query.lstrip()
@@ -103,19 +117,16 @@ def influx_query(flux_query: str, measurement: str | None = None):
     )
     query_api = client.query_api()
     result = query_api.query(org=INFLUX_ORG, query=flux_query)
-    return [
+    data = [
         {**record.values, "value": record.get_value(), "time": record.get_time()}
         for table in result for record in table.records
     ]
-
-
-def influx_query_store(flux_query: str, measurement: str | None = None):
-    """Run a query and store the result in the global cache."""
-    data = influx_query(flux_query, measurement)
     return store_cached_data(data)
 
+
+
 def influx_write_point(fields: dict, measurement: str | None = None, tags: dict | None = None, time=None):
-    """Write a single point to the bucket."""
+    """Write a single point to the bucket and return a confirmation message."""
     measurement = measurement or MEASUREMENT
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
@@ -128,22 +139,33 @@ def influx_write_point(fields: dict, measurement: str | None = None, tags: dict 
         "time": time,
     }
     write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)
-    return {"status": "success", "point": point}
+    return {
+        "message": f"Point written to measurement {measurement}.",
+        "status": "success",
+        "point": point,
+    }
 
 
 def influx_delete_data(start: str, stop: str, predicate: str = ""):
-    """Delete data in a time range with optional predicate."""
+    """Delete data in a time range with optional predicate and confirm the action."""
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     delete_api = client.delete_api()
     delete_api.delete(start, stop, predicate, bucket=INFLUX_BUCKET, org=INFLUX_ORG)
-    return {"status": "deleted", "start": start, "stop": stop, "predicate": predicate}
+    return {
+        "message": "Data deleted successfully.",
+        "status": "deleted",
+        "start": start,
+        "stop": stop,
+        "predicate": predicate,
+    }
 
 
-def get_current_time() -> str:
-    """Return the current UTC time in ISO 8601 format."""
-    return datetime.now(timezone.utc).isoformat()
+def get_current_time() -> dict:
+    """Return the current UTC time in ISO 8601 format with a message."""
+    now = datetime.now(timezone.utc).isoformat()
+    return {"message": f"Current UTC time is {now}.", "time": now}
 
 
 influxDB_agent = Agent(
@@ -154,14 +176,13 @@ influxDB_agent = Agent(
         f"and default measurement {MEASUREMENT}. "
         "Authenticate using the token stored in the INFLUX_TOKEN environment variable. "
         "You can list buckets, measurements, fields, execute arbitrary Flux queries, write points, delete data, "
-        "cache query results for other agents using influx_query_store, and provide the current UTC time."
+        "automatically cache query results for other agents, and provide the current UTC time."
     ),
     functions=[
         influx_list_buckets,
         influx_list_measurements,
         influx_list_fields,
         influx_query,
-        influx_query_store,
         influx_write_point,
         influx_delete_data,
         get_current_time,

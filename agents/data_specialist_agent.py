@@ -3,25 +3,30 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from swarm import Agent
 from .common import MODEL_NAME_1
-from .data_store import head_cached_data
+from .data_store import head_cached_data, CACHE_FILE
 
 
-def list_data_fields(data: dict) -> list:
-    """List all available fields in the provided dataset."""
+def list_data_fields(data: dict) -> dict:
+    """List all available fields in the provided dataset with a message."""
     df = pd.DataFrame(data)
-    return list(df.columns)
+    fields = list(df.columns)
+    return {"message": f"Found {len(fields)} fields.", "fields": fields}
 
 
 def filter_data(data: dict, filters: dict) -> dict:
-    """Filter the dataset based on provided criteria."""
+    """Filter the dataset based on provided criteria and describe the result."""
     df = pd.DataFrame(data)
     for field, condition in filters.items():
         df = df.query(condition)
-    return df.to_dict(orient="list")
+    result = df.to_dict(orient="list")
+    return {
+        "message": f"Filtered data with {len(filters)} conditions resulting in {len(df)} rows.",
+        "data": result,
+    }
 
 
-def visualize_data(data: dict, plot_type: str | None = None, filename: str | None = None) -> str:
-    """Generate a plot from the data and save it to a file."""
+def visualize_data(data: dict, plot_type: str | None = None, filename: str | None = None) -> dict:
+    """Generate a plot from the data, save it, and return a summary message."""
     df = pd.DataFrame(data)
 
     numeric_cols = df.select_dtypes(include="number").columns.tolist()
@@ -95,7 +100,7 @@ def visualize_data(data: dict, plot_type: str | None = None, filename: str | Non
     filepath = os.path.join(output_dir, filename)
     plt.savefig(filepath)
     plt.close()
-    return filepath
+    return {"message": f"Plot saved to {filepath}", "file": filepath}
 
 
 data_specialist_agent = Agent(
@@ -104,7 +109,8 @@ data_specialist_agent = Agent(
         "You are a data specialist agent. You can list data fields, filter datasets based on criteria, "
         "and autonomously decide which data to visualize. You generate plot files when requested, "
         "supporting scatter, line, bar, histogram and pie charts. "
-        "Retrieved data is cached globally. Use head_cached_data to inspect the first rows. "
+        "Retrieved data is cached in the file "
+        f"{CACHE_FILE}. Use head_cached_data to inspect the first rows. "
         "Start your analysis only when an actual dataset is provided. If no data is available, "
         "ask that it be retrieved via the database manager first."
     ),

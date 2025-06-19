@@ -145,13 +145,13 @@ def test_get_current_time_returns_iso():
     import agents
     importlib.reload(agents)
 
-    time_str = agents.get_current_time()
-    assert isinstance(time_str, str)
-    assert "T" in time_str
+    time_info = agents.get_current_time()
+    assert "time" in time_info
+    assert "T" in time_info["time"]
 
 
 
-def test_influx_query_store_caches_data():
+def test_influx_query_caches_data():
     with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
@@ -163,7 +163,7 @@ def test_influx_query_store_caches_data():
         importlib.reload(agents)
 
         with patch('agents.database_manager.store_cached_data') as mock_store:
-            agents.influx_query_store('fake')
+            agents.influx_query('fake')
             mock_store.assert_called_once()
 
 
@@ -173,4 +173,4 @@ def test_head_cached_data_returns_subset():
 
     agents.store_cached_data([{'num': i} for i in range(20)])
     subset = agents.head_cached_data(5)
-    assert subset['num'] == list(range(5))
+    assert subset["data"]["num"] == list(range(5))

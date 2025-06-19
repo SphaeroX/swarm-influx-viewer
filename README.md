@@ -24,6 +24,9 @@ provider.
 ### Notes
 The `influx_query` function now automatically injects the configured bucket if the Flux query does not specify one or if the placeholder `INFLUX_BUCKET` is used. It also applies the configured measurement when no `_measurement` filter is present or when `MEASUREMENT` is used as a placeholder.
 
+Query results retrieved with `influx_query` are automatically saved to `cached_data.json` by default. The data analyst can load this file directly for further processing.
+Most agent functions also return a short descriptive message so other agents know what happened.
+
 ### Agents
 Each agent now resides in its own module under the `agents` package:
 - `database_manager.py` for database management
