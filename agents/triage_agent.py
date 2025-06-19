@@ -29,7 +29,9 @@ triage_agent = Agent(
     name="Triage Agent",
     instructions=(
         "Determine which agent is best suited to handle the user's request and transfer the conversation to that agent. "
-        "Never terminate the conversation yourself. After providing an answer, transfer to the clarifying agent so it can ask if the user needs anything else."
+        "Never terminate the conversation yourself. After providing an answer, transfer to the clarifying agent so it can ask if the user needs anything else. "
+        "Always use the database manager agent to fetch data before sending the conversation to the data specialist. "
+        "Only transfer to the data specialist if data has been successfully retrieved. If no data is returned, inform the user instead."
     ),
     model=MODEL_NAME_1,
 )
