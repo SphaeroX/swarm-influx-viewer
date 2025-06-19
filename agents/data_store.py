@@ -30,14 +30,18 @@ def get_cached_data():
 
 
 def head_cached_data(n: int = 10):
-    """Return the first ``n`` rows from the cached dataset."""
+    """Return the first ``n`` rows from the cached dataset along with a message."""
     data = get_cached_data()
     if data is None:
-        return None
+        return {"message": "No cached data available.", "data": None}
     import pandas as pd
 
     df = pd.DataFrame(data)
-    return df.head(n).to_dict(orient="list")
+    subset = df.head(n).to_dict(orient="list")
+    return {
+        "message": f"Returned the first {n} rows of cached data.",
+        "data": subset,
+    }
 
 
 __all__ = [

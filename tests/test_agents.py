@@ -145,9 +145,9 @@ def test_get_current_time_returns_iso():
     import agents
     importlib.reload(agents)
 
-    time_str = agents.get_current_time()
-    assert isinstance(time_str, str)
-    assert "T" in time_str
+    time_info = agents.get_current_time()
+    assert "time" in time_info
+    assert "T" in time_info["time"]
 
 
 
@@ -173,4 +173,4 @@ def test_head_cached_data_returns_subset():
 
     agents.store_cached_data([{'num': i} for i in range(20)])
     subset = agents.head_cached_data(5)
-    assert subset['num'] == list(range(5))
+    assert subset["data"]["num"] == list(range(5))
