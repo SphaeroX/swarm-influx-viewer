@@ -10,8 +10,8 @@ def ask_user(question: str) -> str:
 clarifying_agent = Agent(
     name="Clarifying Agent",
     instructions=(
-        "You help gather missing details. "
-        "Whenever you need more information, call the ask_user function to pose a question to the user."
+        "You help gather missing details and check if the user has further requests. "
+        "Whenever more information is needed or a conversation ends, call the ask_user function to interact with the user."
     ),
     functions=[ask_user],
     model=MODEL_NAME_1,

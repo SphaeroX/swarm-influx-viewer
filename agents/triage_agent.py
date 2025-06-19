@@ -27,7 +27,10 @@ def transfer_to_clarifying_agent():
 
 triage_agent = Agent(
     name="Triage Agent",
-    instructions="Determine which agent is best suited to handle the user's request, and transfer the conversation to that agent.",
+    instructions=(
+        "Determine which agent is best suited to handle the user's request and transfer the conversation to that agent. "
+        "Never terminate the conversation yourself. After providing an answer, transfer to the clarifying agent so it can ask if the user needs anything else."
+    ),
     model=MODEL_NAME_1,
 )
 
