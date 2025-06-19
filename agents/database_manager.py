@@ -109,8 +109,8 @@ def influx_query(flux_query: str, measurement: str | None = None):
     ]
 
 
-def influx_query_store(flux_query: str, measurement: str | None = None):
-    """Run a query and store the result in the global cache."""
+def influx_query_store(flux_query: str, measurement: str | None = None) -> str:
+    """Run a query, cache the result to disk and return a confirmation message."""
     data = influx_query(flux_query, measurement)
     return store_cached_data(data)
 

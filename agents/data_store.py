@@ -1,27 +1,49 @@
+"""Utility module to cache query results on disk."""
+
+import json
+import os
+
 cached_data = None
+CACHE_FILE = os.getenv("CACHE_FILE", "cached_data.json")
 
 
-def store_cached_data(data):
-    """Store data in the global cache and return a status message."""
+def store_cached_data(data) -> str:
+    """Persist data to ``CACHE_FILE`` and update the in-memory cache."""
     global cached_data
     cached_data = data
-    length = len(data) if hasattr(data, "__len__") else 0
-    return {"status": "stored", "records": length}
+    try:
+        with open(CACHE_FILE, "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
+        length = len(data) if hasattr(data, "__len__") else 0
+        return f"Data successfully stored in {CACHE_FILE} with {length} records."
+    except Exception as exc:  # pragma: no cover - avoid failing on IO errors
+        return f"Failed to store data in {CACHE_FILE}: {exc}"
 
 
 def get_cached_data():
-    """Return the cached dataset."""
+    """Load the cached dataset from disk if needed and return it."""
+    global cached_data
+    if cached_data is None and os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "r", encoding="utf-8") as fh:
+            cached_data = json.load(fh)
     return cached_data
 
 
 def head_cached_data(n: int = 10):
     """Return the first ``n`` rows from the cached dataset."""
-    if cached_data is None:
+    data = get_cached_data()
+    if data is None:
         return None
     import pandas as pd
 
-    df = pd.DataFrame(cached_data)
+    df = pd.DataFrame(data)
     return df.head(n).to_dict(orient="list")
 
 
-__all__ = ["store_cached_data", "get_cached_data", "head_cached_data", "cached_data"]
+__all__ = [
+    "store_cached_data",
+    "get_cached_data",
+    "head_cached_data",
+    "cached_data",
+    "CACHE_FILE",
+]
