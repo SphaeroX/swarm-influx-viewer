@@ -5,8 +5,16 @@ from swarm import Agent
 from .common import MODEL_NAME_1
 
 
-def list_data_fields(data: dict) -> list:
-    """List all available fields in the provided dataset."""
+def list_data_fields(data: dict | None = None) -> list:
+    """Return the column names in the provided dataset.
+
+    When called without data, an empty list is returned instead of raising a
+    ``TypeError``. This makes the function more robust when the agent invokes it
+    without arguments.
+    """
+    if not data:
+        return []
+
     df = pd.DataFrame(data)
     return list(df.columns)
 

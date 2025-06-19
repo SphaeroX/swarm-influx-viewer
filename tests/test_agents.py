@@ -156,3 +156,10 @@ def test_influx_query_last_hour_defaults_measurement():
         called_query = mock_query_api.query.call_args.kwargs['query']
         assert 'r._measurement == "default_measure"' in called_query
 
+
+def test_list_data_fields_no_data():
+    import agents
+    importlib.reload(agents)
+
+    assert agents.list_data_fields() == []
+
