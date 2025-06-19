@@ -5,11 +5,12 @@
 4. ``playwright install``
 
 ### Configuration
-Copy `config.example.py` to `config.py` and fill in your InfluxDB details. If no
-`config.py` is present, the application falls back to the environment variables
-`INFLUX_URL`, `INFLUX_TOKEN`, `INFLUX_ORG`, `INFLUX_BUCKET` and `MEASUREMENT`.
-The `MEASUREMENT` setting controls which measurement is used when none is
-explicitly provided in a query.
+Copy `config.example.py` to `config.py` and adjust the values directly. The
+sample file defines plain constants and does not read from environment
+variables. If `config.py` is absent, the application falls back to the
+environment variables `INFLUX_URL`, `INFLUX_TOKEN`, `INFLUX_ORG`, `INFLUX_BUCKET`
+and `MEASUREMENT`. The `MEASUREMENT` setting controls which measurement is used
+when none is explicitly provided in a query.
 
 Set `LLM_PROVIDER` to `openai` or `ollama` to explicitly choose between the two.
 When omitted, the agents default to OpenAI if `OPENAI_API_KEY` is provided and
