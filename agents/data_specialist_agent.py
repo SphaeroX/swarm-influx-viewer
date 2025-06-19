@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from swarm import Agent
 from .common import MODEL_NAME_1
+from .data_store import head_cached_data
 
 
 def list_data_fields(data: dict) -> list:
@@ -103,6 +104,7 @@ data_specialist_agent = Agent(
         "You are a data specialist agent. You can list data fields, filter datasets based on criteria, "
         "and autonomously decide which data to visualize. You generate plot files when requested, "
         "supporting scatter, line, bar, histogram and pie charts. "
+        "Retrieved data is cached globally. Use head_cached_data to inspect the first rows. "
         "Start your analysis only when an actual dataset is provided. If no data is available, "
         "ask that it be retrieved via the database manager first."
     ),
@@ -110,6 +112,7 @@ data_specialist_agent = Agent(
         list_data_fields,
         filter_data,
         visualize_data,
+        head_cached_data,
     ],
     model=MODEL_NAME_1,
 )
