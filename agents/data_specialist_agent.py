@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from swarm import Agent
-from .common import MODEL_NAME
+from .common import MODEL_NAME_1
 
 
 def list_data_fields(data: dict) -> list:
@@ -109,5 +109,5 @@ data_specialist_agent = Agent(
         filter_data,
         visualize_data,
     ],
-    model=MODEL_NAME,
+    model=MODEL_NAME_1,
 )

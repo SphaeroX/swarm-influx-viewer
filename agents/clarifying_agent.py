@@ -1,5 +1,5 @@
 from swarm import Agent
-from .common import MODEL_NAME
+from .common import MODEL_NAME_1
 
 
 def ask_user(question: str) -> str:
@@ -14,5 +14,5 @@ clarifying_agent = Agent(
         "Whenever you need more information, call the ask_user function to pose a question to the user."
     ),
     functions=[ask_user],
-    model=MODEL_NAME,
+    model=MODEL_NAME_1,
 )

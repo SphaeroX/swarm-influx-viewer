@@ -1,5 +1,5 @@
 from swarm import Agent
-from .common import MODEL_NAME
+from .common import MODEL_NAME_1
 from .database_manager import influxDB_agent
 from .data_specialist_agent import data_specialist_agent
 from .clarifying_agent import clarifying_agent
@@ -28,7 +28,7 @@ def transfer_to_clarifying_agent():
 triage_agent = Agent(
     name="Triage Agent",
     instructions="Determine which agent is best suited to handle the user's request, and transfer the conversation to that agent.",
-    model=MODEL_NAME,
+    model=MODEL_NAME_1,
 )
 
 triage_agent.functions = [
