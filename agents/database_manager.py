@@ -61,25 +61,6 @@ schema.fieldKeys(
     return [record.get_value() for table in result for record in table.records]
 
 
-def influx_query_last_hour(field: str, measurement: str | None = None):
-    """Query the specified field from the last hour."""
-    measurement = measurement or MEASUREMENT
-    query = f"""
-from(bucket: \"{INFLUX_BUCKET}\")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == \"{measurement}\" and r._field == \"{field}\")
-"""
-    client = InfluxDBClient(
-        url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
-    )
-    query_api = client.query_api()
-    result = query_api.query(org=INFLUX_ORG, query=query)
-    return [
-        {"time": record.get_time(), "value": record.get_value()}
-        for table in result for record in table.records
-    ]
-
-
 
 def influx_query(flux_query: str, measurement: str | None = None):
     """Execute an arbitrary Flux query against the bucket and measurement."""
@@ -154,14 +135,13 @@ influxDB_agent = Agent(
     name="InfluxDB Management Agent",
     instructions=(
         "You are an IT specialist agent capable of managing and querying an InfluxDB database. "
-        "You can list buckets, measurements, fields, query the last hour of data, execute arbitrary Flux queries, "
+        "You can list buckets, measurements, fields, execute arbitrary Flux queries, "
         "write points, and delete data."
     ),
     functions=[
         influx_list_buckets,
         influx_list_measurements,
         influx_list_fields,
-        influx_query_last_hour,
         influx_query,
         influx_write_point,
         influx_delete_data,
