@@ -1,6 +1,6 @@
 import os
 import re
-from influxdb_client import InfluxDBClient
+from influxdb_client.client.influxdb_client import InfluxDBClient
 from swarm import Agent
 from .common import MODEL_NAME
 
@@ -150,7 +150,7 @@ def influx_delete_data(start: str, stop: str, predicate: str = ""):
     return {"status": "deleted", "start": start, "stop": stop, "predicate": predicate}
 
 
-influxDB_agent = Agent(
+influxDB_agent = Agent(  # pyright: ignore[reportArgumentType]
     name="InfluxDB Management Agent",
     instructions=(
         "You are an IT specialist agent capable of managing and querying an InfluxDB database. "
