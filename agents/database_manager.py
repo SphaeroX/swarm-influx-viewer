@@ -66,8 +66,8 @@ schema.fieldKeys(
 
 
 
-def influx_query(flux_query: str, measurement: str | None = None):
-    """Execute an arbitrary Flux query against the bucket and measurement."""
+def influx_query(flux_query: str, measurement: str | None = None) -> str:
+    """Execute a Flux query, cache the result to ``CACHE_FILE`` and return a confirmation message."""
     measurement = measurement or MEASUREMENT
     if "from(bucket:" not in flux_query:
         cleaned = flux_query.lstrip()
@@ -103,16 +103,13 @@ def influx_query(flux_query: str, measurement: str | None = None):
     )
     query_api = client.query_api()
     result = query_api.query(org=INFLUX_ORG, query=flux_query)
-    return [
+    data = [
         {**record.values, "value": record.get_value(), "time": record.get_time()}
         for table in result for record in table.records
     ]
-
-
-def influx_query_store(flux_query: str, measurement: str | None = None) -> str:
-    """Run a query, cache the result to disk and return a confirmation message."""
-    data = influx_query(flux_query, measurement)
     return store_cached_data(data)
+
+
 
 def influx_write_point(fields: dict, measurement: str | None = None, tags: dict | None = None, time=None):
     """Write a single point to the bucket."""
@@ -154,14 +151,13 @@ influxDB_agent = Agent(
         f"and default measurement {MEASUREMENT}. "
         "Authenticate using the token stored in the INFLUX_TOKEN environment variable. "
         "You can list buckets, measurements, fields, execute arbitrary Flux queries, write points, delete data, "
-        "cache query results for other agents using influx_query_store, and provide the current UTC time."
+        "automatically cache query results for other agents, and provide the current UTC time."
     ),
     functions=[
         influx_list_buckets,
         influx_list_measurements,
         influx_list_fields,
         influx_query,
-        influx_query_store,
         influx_write_point,
         influx_delete_data,
         get_current_time,

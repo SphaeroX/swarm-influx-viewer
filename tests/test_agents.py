@@ -151,7 +151,7 @@ def test_get_current_time_returns_iso():
 
 
 
-def test_influx_query_store_caches_data():
+def test_influx_query_caches_data():
     with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_query_api = MagicMock()
@@ -163,7 +163,7 @@ def test_influx_query_store_caches_data():
         importlib.reload(agents)
 
         with patch('agents.database_manager.store_cached_data') as mock_store:
-            agents.influx_query_store('fake')
+            agents.influx_query('fake')
             mock_store.assert_called_once()
 
 
