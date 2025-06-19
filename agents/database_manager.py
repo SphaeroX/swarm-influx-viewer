@@ -1,6 +1,7 @@
 import os
 import re
 from influxdb_client import InfluxDBClient
+from influxdb_client.rest import ApiException
 from swarm import Agent
 from .common import MODEL_NAME_1
 
@@ -98,7 +99,15 @@ def influx_query(flux_query: str, measurement: str | None = None):
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     query_api = client.query_api()
-    result = query_api.query(org=INFLUX_ORG, query=flux_query)
+    try:
+        result = query_api.query(org=INFLUX_ORG, query=flux_query)
+    except ApiException as e:
+        if e.status == 404 and "could not find bucket" in str(e.body):
+            raise ValueError(
+                f"Bucket '{INFLUX_BUCKET}' not found. "
+                "Check your configuration before querying."
+            ) from e
+        raise
     return [
         {**record.values, "value": record.get_value(), "time": record.get_time()}
         for table in result for record in table.records
