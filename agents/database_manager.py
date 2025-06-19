@@ -1,6 +1,7 @@
 import os
 import re
 from influxdb_client import InfluxDBClient
+from datetime import datetime, timezone
 from swarm import Agent
 from .common import MODEL_NAME_1
 
@@ -61,23 +62,6 @@ schema.fieldKeys(
     return [record.get_value() for table in result for record in table.records]
 
 
-def influx_query_last_hour(field: str, measurement: str | None = None):
-    """Query the specified field from the last hour."""
-    measurement = measurement or MEASUREMENT
-    query = f"""
-from(bucket: \"{INFLUX_BUCKET}\")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == \"{measurement}\" and r._field == \"{field}\")
-"""
-    client = InfluxDBClient(
-        url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
-    )
-    query_api = client.query_api()
-    result = query_api.query(org=INFLUX_ORG, query=query)
-    return [
-        {"time": record.get_time(), "value": record.get_value()}
-        for table in result for record in table.records
-    ]
 
 
 
@@ -150,23 +134,29 @@ def influx_delete_data(start: str, stop: str, predicate: str = ""):
     return {"status": "deleted", "start": start, "stop": stop, "predicate": predicate}
 
 
+def get_current_time() -> str:
+    """Return the current UTC time in ISO 8601 format."""
+    return datetime.now(timezone.utc).isoformat()
+
+
 influxDB_agent = Agent(
     name="InfluxDB Management Agent",
     instructions=(
         "You are an IT specialist agent capable of managing and querying an InfluxDB database. "
-        "Use the connection details defined in the environment variables INFLUX_URL, INFLUX_TOKEN, "
-        "INFLUX_ORG, INFLUX_BUCKET and MEASUREMENT to build your queries. "
-        "You can list buckets, measurements, fields, query the last hour of data, execute arbitrary Flux queries, "
-        "write points, and delete data."
+        f"The server runs at {INFLUX_URL} with organisation {INFLUX_ORG}, bucket {INFLUX_BUCKET} "
+        f"and default measurement {MEASUREMENT}. "
+        "Authenticate using the token stored in the INFLUX_TOKEN environment variable. "
+        "You can list buckets, measurements, fields, execute arbitrary Flux queries, write points, delete data, "
+        "and provide the current UTC time."
     ),
     functions=[
         influx_list_buckets,
         influx_list_measurements,
         influx_list_fields,
-        influx_query_last_hour,
         influx_query,
         influx_write_point,
         influx_delete_data,
+        get_current_time,
     ],
     model=MODEL_NAME_1,
 )

@@ -27,6 +27,7 @@ The `influx_query` function now automatically injects the configured bucket if t
 ### Agents
 Each agent now resides in its own module under the `agents` package:
 - `database_manager.py` for database management
+- `get_current_time` helper returns the current UTC time in ISO format
 - `data_specialist_agent.py` for data analysis and plotting
 - `clarifying_agent.py` for gathering missing user details
 - `triage_agent.py` that routes requests to the appropriate agent
