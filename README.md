@@ -24,14 +24,6 @@ provider.
 ### Notes
 The `influx_query` function now automatically injects the configured bucket if the Flux query does not specify one or if the placeholder `INFLUX_BUCKET` is used. It also applies the configured measurement when no `_measurement` filter is present or when `MEASUREMENT` is used as a placeholder.
 
-If the configured bucket does not exist on the server, the helper raises a
-clear `ValueError` pointing out the missing bucket. Check your `INFLUX_BUCKET`
-setting whenever you encounter a `404` error from the API.
-
-All database helpers load their connection details from the environment on each
-call. Ensure `INFLUX_URL`, `INFLUX_TOKEN`, `INFLUX_ORG` and `INFLUX_BUCKET` are
-defined before running the agents or the helpers will raise a `ValueError`.
-
 ### Agents
 Each agent now resides in its own module under the `agents` package:
 - `database_manager.py` for database management

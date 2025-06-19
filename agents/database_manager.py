@@ -1,7 +1,6 @@
 import os
 import re
 from influxdb_client import InfluxDBClient
-from influxdb_client.rest import ApiException
 from swarm import Agent
 from .common import MODEL_NAME_1
 
@@ -21,42 +20,8 @@ except ImportError:  # pragma: no cover - fallback for runtime usage
     MEASUREMENT = os.getenv("MEASUREMENT", "")
 
 
-def _refresh_config() -> None:
-    """Reload InfluxDB settings from ``config.py`` or environment variables."""
-    try:  # reimport in case values changed
-        from importlib import reload
-        import config  # type: ignore
-
-        cfg = reload(config)
-        url = getattr(cfg, "INFLUX_URL", "")
-        token = getattr(cfg, "INFLUX_TOKEN", "")
-        org = getattr(cfg, "INFLUX_ORG", "")
-        bucket = getattr(cfg, "INFLUX_BUCKET", "")
-        measurement = getattr(cfg, "MEASUREMENT", "")
-    except Exception:  # pragma: no cover - runtime fallback
-        url = os.getenv("INFLUX_URL", "")
-        token = os.getenv("INFLUX_TOKEN", "")
-        org = os.getenv("INFLUX_ORG", "")
-        bucket = os.getenv("INFLUX_BUCKET", "")
-        measurement = os.getenv("MEASUREMENT", "")
-
-    global INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET, MEASUREMENT
-    INFLUX_URL = url
-    INFLUX_TOKEN = token
-    INFLUX_ORG = org
-    INFLUX_BUCKET = bucket
-    MEASUREMENT = measurement
-
-    if not all([INFLUX_URL, INFLUX_TOKEN, INFLUX_ORG, INFLUX_BUCKET]):
-        raise ValueError(
-            "Missing InfluxDB configuration. Set INFLUX_URL, INFLUX_TOKEN, "
-            "INFLUX_ORG and INFLUX_BUCKET via environment variables or config.py."
-        )
-
-
 def influx_list_buckets():
     """List all buckets in the InfluxDB instance."""
-    _refresh_config()
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
@@ -66,7 +31,6 @@ def influx_list_buckets():
 
 def influx_list_measurements():
     """List all measurements in the predetermined bucket."""
-    _refresh_config()
     query = f"""
 import \"influxdata/influxdb/schema\"
 schema.measurements(bucket: \"{INFLUX_BUCKET}\")
@@ -81,7 +45,6 @@ schema.measurements(bucket: \"{INFLUX_BUCKET}\")
 
 def influx_list_fields(measurement: str | None = None):
     """List all field keys for a given measurement in the bucket."""
-    _refresh_config()
     measurement = measurement or MEASUREMENT
     query = f"""
 import \"influxdata/influxdb/schema\"
@@ -98,10 +61,28 @@ schema.fieldKeys(
     return [record.get_value() for table in result for record in table.records]
 
 
+def influx_query_last_hour(field: str, measurement: str | None = None):
+    """Query the specified field from the last hour."""
+    measurement = measurement or MEASUREMENT
+    query = f"""
+from(bucket: \"{INFLUX_BUCKET}\")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == \"{measurement}\" and r._field == \"{field}\")
+"""
+    client = InfluxDBClient(
+        url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
+    )
+    query_api = client.query_api()
+    result = query_api.query(org=INFLUX_ORG, query=query)
+    return [
+        {"time": record.get_time(), "value": record.get_value()}
+        for table in result for record in table.records
+    ]
+
+
 
 def influx_query(flux_query: str, measurement: str | None = None):
     """Execute an arbitrary Flux query against the bucket and measurement."""
-    _refresh_config()
     measurement = measurement or MEASUREMENT
     if "from(bucket:" not in flux_query:
         cleaned = flux_query.lstrip()
@@ -136,15 +117,7 @@ def influx_query(flux_query: str, measurement: str | None = None):
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
     query_api = client.query_api()
-    try:
-        result = query_api.query(org=INFLUX_ORG, query=flux_query)
-    except ApiException as e:
-        if e.status == 404 and "could not find bucket" in str(e.body):
-            raise ValueError(
-                f"Bucket '{INFLUX_BUCKET}' not found. "
-                "Check your configuration before querying."
-            ) from e
-        raise
+    result = query_api.query(org=INFLUX_ORG, query=flux_query)
     return [
         {**record.values, "value": record.get_value(), "time": record.get_time()}
         for table in result for record in table.records
@@ -152,7 +125,6 @@ def influx_query(flux_query: str, measurement: str | None = None):
 
 def influx_write_point(fields: dict, measurement: str | None = None, tags: dict | None = None, time=None):
     """Write a single point to the bucket."""
-    _refresh_config()
     measurement = measurement or MEASUREMENT
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
@@ -170,7 +142,6 @@ def influx_write_point(fields: dict, measurement: str | None = None, tags: dict 
 
 def influx_delete_data(start: str, stop: str, predicate: str = ""):
     """Delete data in a time range with optional predicate."""
-    _refresh_config()
     client = InfluxDBClient(
         url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG
     )
@@ -183,13 +154,16 @@ influxDB_agent = Agent(
     name="InfluxDB Management Agent",
     instructions=(
         "You are an IT specialist agent capable of managing and querying an InfluxDB database. "
-        "You can list buckets, measurements, fields, execute arbitrary Flux queries, "
+        "Use the connection details defined in the environment variables INFLUX_URL, INFLUX_TOKEN, "
+        "INFLUX_ORG, INFLUX_BUCKET and MEASUREMENT to build your queries. "
+        "You can list buckets, measurements, fields, query the last hour of data, execute arbitrary Flux queries, "
         "write points, and delete data."
     ),
     functions=[
         influx_list_buckets,
         influx_list_measurements,
         influx_list_fields,
+        influx_query_last_hour,
         influx_query,
         influx_write_point,
         influx_delete_data,

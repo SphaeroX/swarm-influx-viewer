@@ -2,7 +2,6 @@ import os
 import sys
 import importlib
 from unittest.mock import MagicMock, patch
-import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -140,16 +139,20 @@ def test_clarifying_agent_has_function():
 
     assert agents.ask_user in agents.clarifying_agent.functions
 
-
-def test_missing_config_raises_error():
-    env_backup = os.environ.copy()
-    for var in ["INFLUX_URL", "INFLUX_TOKEN", "INFLUX_ORG", "INFLUX_BUCKET"]:
-        os.environ.pop(var, None)
-    import agents
-    importlib.reload(agents)
-
-    with pytest.raises(ValueError):
-        agents.influx_query("|> range(start: -1h)")
-    os.environ.update(env_backup)
-
     
+def test_influx_query_last_hour_defaults_measurement():
+    with patch('agents.database_manager.InfluxDBClient') as mock_client_cls:
+        mock_client = MagicMock()
+        mock_query_api = MagicMock()
+        mock_query_api.query.return_value = []
+        mock_client.query_api.return_value = mock_query_api
+        mock_client_cls.return_value = mock_client
+
+        import agents
+        importlib.reload(agents)
+
+        agents.influx_query_last_hour(field='co2')
+
+        called_query = mock_query_api.query.call_args.kwargs['query']
+        assert 'r._measurement == "default_measure"' in called_query
+
